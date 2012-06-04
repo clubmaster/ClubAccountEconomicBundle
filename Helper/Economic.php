@@ -4,19 +4,31 @@ namespace Club\Account\EconomicBundle\Helper;
 
 class Economic
 {
-  protected $container;
-  protected $translator;
   protected $client;
+  protected $config;
+  protected $connected = false;
 
-  public function __construct($container)
+  /**
+   * @param array $config [
+   *  url=>string,
+   *  agreementNumber=>string,
+   *  userName=>string,
+   *  password=>string,
+   *  cashbook=>string,
+   *  currency=>string,
+   *  contraAccount=>string
+   * ]
+   */
+  public function setConfig($config)
   {
-    $this->container = $container;
-    $this->translator = $container->get('translator');
+    $this->config = $config;
     $this->connect();
   }
 
   protected function findDebtor(\Club\UserBundle\Entity\User $user)
   {
+    $this->connect();
+
     $this->debtor = $this->client->Debtor_FindByNumber(array('number' => $user->getMemberNumber()));
     if (count($this->debtor)) return $this->debtor->Debtor_FindByNumberResult;
 
@@ -153,7 +165,7 @@ class Economic
     ))->Currency_FindByCodeResult;
   }
 
-  public function addFinanceVoucher(\Club\ShopBundle\Entity\OrderProduct $order_product)
+  public function addFinanceVoucher($order_product)
   {
     switch ($order_product->getType()) {
     case 'coupon':
@@ -164,15 +176,15 @@ class Economic
       break;
     case 'product':
     case 'subscription':
-      $account = $this->getAccount($order_product->getProduct()->getAccountNumber());
+      $account = $this->getAccount($order_product->getAccountNumber());
       break;
     default:
       return;
     }
 
-    $contra_account = $this->getAccount($this->container->getParameter('club_account_economic.contraAccount'));
-    $cashbook = $this->getCashBookByName($this->container->getParameter('club_account_economic.cashbook'));
-    $currency = $this->getCurrencyByCode($this->container->getParameter('club_account_economic.currency'));
+    $contra_account = $this->getAccount($this->config['contraAccount']);
+    $cashbook = $this->getCashBookByName($this->config['cashbook']);
+    $currency = $this->getCurrencyByCode($this->config['currency']);
 
     $r = $this->client->CashBookEntry_Create(array(
       'type' => 'FinanceVoucher',
@@ -198,10 +210,7 @@ class Economic
         'AmountDefaultCurrency' => $price,
         'Amount' => $price,
         'CurrencyHandle' => $currency,
-        'Text' => $this->translator->trans('Payment from %user%, order %order%', array(
-          '%user%' => $order_product->getOrder()->getUser()->getName(),
-          '%order%' => $order_product->getOrder()->getOrderNumber()
-        ))
+        'Text' => $order_product->getVoucherText()
       )))->CashBookEntry_UpdateFromDataResult;
   }
 
@@ -210,9 +219,9 @@ class Economic
     $user = $this->findDebtor($purchase_log->getOrder()->getUser());
     if (!count($user)) $user = $this->addDebtor($user);
 
-    $contra_account = $this->getAccount($this->container->getParameter('club_account_economic.contraAccount'));
-    $cashbook = $this->getCashBookByName($this->container->getParameter('club_account_economic.cashbook'));
-    $currency = $this->getCurrencyByCode($this->container->getParameter('club_account_economic.currency'));
+    $contra_account = $this->getAccount($this->config['contraAccount']);
+    $cashbook = $this->getCashBookByName($this->config['cashbook']);
+    $currency = $this->getCurrencyByCode($this->config['currency']);
 
     $r = $this->client->CashBookEntry_Create(array(
       'type' => 'DebtorPayment',
@@ -275,16 +284,22 @@ class Economic
 
   protected function connect()
   {
-    $this->client = new \SoapClient($this->container->getParameter('club_account_economic.economic_url'), array("trace" => 1, "exceptions" => 1));
+    if ($this->connected) return true;
+
+    $this->client = new \SoapClient($this->config['url'], array("trace" => 1, "exceptions" => 1));
     $this->client->Connect(array(
-      'agreementNumber' => $this->container->getParameter('club_account_economic.agreement'),
-      'userName'        => $this->container->getParameter('club_account_economic.username'),
-      'password'        => $this->container->getParameter('club_account_economic.password')
+      'agreementNumber' => $this->config['agreementNumber'],
+      'userName' => $this->config['userName'],
+      'password' => $this->config['password']
     ));
+
+    $this->connected = true;
   }
 
   protected function disconnect()
   {
     $this->client->Disconnect();
+
+    $this->connected = false;
   }
 }
