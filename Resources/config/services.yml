@@ -1,4 +1,3 @@
 services:
   club_account_economic.economic:
     class: Club\Account\EconomicBundle\Helper\Economic
-    arguments: [@service_container]
