@@ -171,9 +171,9 @@ class Economic
       return;
     }
 
-    $contra_account = $this->getAccount($this->config['contraAccount']);
-    $cashbook = $this->getCashBookByName($this->config['cashbook']);
-    $currency = $this->getCurrencyByCode($this->config['currency']);
+    $contra_account = $this->getAccount($this->config->contraAccount);
+    $cashbook = $this->getCashBookByName($this->config->cashbook);
+    $currency = $this->getCurrencyByCode($this->config->currency);
 
     $r = $this->client->CashBookEntry_Create(array(
       'type' => 'FinanceVoucher',
@@ -208,9 +208,9 @@ class Economic
     $user = $this->findDebtor($purchase_log->getOrder()->getUser());
     if (!count($user)) $user = $this->addDebtor($user);
 
-    $contra_account = $this->getAccount($this->config['contraAccount']);
-    $cashbook = $this->getCashBookByName($this->config['cashbook']);
-    $currency = $this->getCurrencyByCode($this->config['currency']);
+    $contra_account = $this->getAccount($this->config->contraAccount);
+    $cashbook = $this->getCashBookByName($this->config->cashbook);
+    $currency = $this->getCurrencyByCode($this->config->currency);
 
     $r = $this->client->CashBookEntry_Create(array(
       'type' => 'DebtorPayment',
@@ -275,11 +275,11 @@ class Economic
   {
     if ($this->connected) return true;
 
-    $this->client = new \SoapClient($this->config['url'], array("trace" => 1, "exceptions" => 1));
+    $this->client = new \SoapClient($this->config->url, array("trace" => 1, "exceptions" => 1));
     $this->client->Connect(array(
-      'agreementNumber' => $this->config['agreementNumber'],
-      'userName' => $this->config['userName'],
-      'password' => $this->config['password']
+      'agreementNumber' => $this->config->agreementNumber,
+      'userName' => $this->config->userName,
+      'password' => $this->config->password
     ));
 
     $this->connected = true;
