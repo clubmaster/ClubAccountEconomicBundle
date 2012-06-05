@@ -154,9 +154,9 @@ class Economic
     ))->Currency_FindByCodeResult;
   }
 
-  public function addFinanceVoucher($order_product)
+  public function addFinanceVoucher(\Club\Account\EconomicBundle\Model\Product $product)
   {
-    switch ($order_product->getType()) {
+    switch ($product->getType()) {
     case 'coupon':
       $account = $this->getAccount($this->container->getParameter('club_shop.coupon_account_number'));
       break;
@@ -165,7 +165,7 @@ class Economic
       break;
     case 'product':
     case 'subscription':
-      $account = $this->getAccount($order_product->getAccountNumber());
+      $account = $this->getAccount($product->getAccountNumber());
       break;
     default:
       return;
@@ -185,7 +185,7 @@ class Economic
     $entry = $this->getCashBookEntry($r);
     $d = new \DateTime();
 
-    $price = $order_product->getPrice()*$order_product->getQuantity()*-1;
+    $price = $product->getPrice()*$product->getQuantity()*-1;
 
     return $this->client->CashBookEntry_UpdateFromData(array(
       'data' => array(
@@ -199,7 +199,7 @@ class Economic
         'AmountDefaultCurrency' => $price,
         'Amount' => $price,
         'CurrencyHandle' => $currency,
-        'Text' => $order_product->getVoucherText()
+        'Text' => $product->getVoucherText()
       )))->CashBookEntry_UpdateFromDataResult;
   }
 
