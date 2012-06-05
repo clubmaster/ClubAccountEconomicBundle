@@ -8,18 +8,7 @@ class Economic
   protected $config;
   protected $connected = false;
 
-  /**
-   * @param array $config [
-   *  url=>string,
-   *  agreementNumber=>string,
-   *  userName=>string,
-   *  password=>string,
-   *  cashbook=>string,
-   *  currency=>string,
-   *  contraAccount=>string
-   * ]
-   */
-  public function setConfig($config)
+  public function setConfig(\Club\Account\EconomicBundle\Model\Config $config)
   {
     $this->config = $config;
     $this->connect();
