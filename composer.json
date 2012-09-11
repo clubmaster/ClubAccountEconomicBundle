@@ -1,0 +1,9 @@
+{
+    "name": "clubmaster/economic",
+    "description": "Economic gateway.",
+    "keywords": ["clubmaster", "economic", "ledger", "gateway"],
+    "license": "Beerware",
+    "require": {
+        "php": ">=5.3.2"
+    }
+}
