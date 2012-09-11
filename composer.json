@@ -15,5 +15,8 @@
             "role": "Maintainer"
         }
     ],
+    "autoload": {
+        "psr-0": { "Club\\Account\\EconomicBundle": "" }
+    },
     "target-dir": "Club/Account/EconomicBundle"
 }
