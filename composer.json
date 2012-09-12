@@ -1,0 +1,22 @@
+{
+    "name": "clubmaster/economic",
+    "type": "symfony-bundle",
+    "description": "Economic gateway.",
+    "keywords": ["clubmaster", "economic", "ledger", "gateway"],
+    "license": "Beerware",
+    "require": {
+        "php": ">=5.3.2"
+    },
+    "authors": [
+        {
+            "name": "Michael Holm Kristensen",
+            "email": "hollo@hollo.dk",
+            "homepage": "http://www.hollo.dk",
+            "role": "Maintainer"
+        }
+    ],
+    "autoload": {
+        "psr-0": { "Club\\Account\\EconomicBundle": "" }
+    },
+    "target-dir": "Club/Account/EconomicBundle"
+}
