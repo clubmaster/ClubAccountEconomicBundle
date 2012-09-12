@@ -11,9 +11,9 @@ class EconomicLog
     $this->container = $container;
   }
 
-  public function onOrderPaid(\Club\ShopBundle\Event\FilterPurchaseLogEvent $event)
+  public function onOrderPaid(\Club\ShopBundle\Event\FilterOrderEvent $event)
   {
-    $purchase = $event->getPurchaseLog();
+    $order = $event->getOrder();
 
     $c = new \Club\Account\EconomicBundle\Model\Config();
     $c->url = $this->container->getParameter('club_account_economic.economic_url');
@@ -27,7 +27,7 @@ class EconomicLog
     $economic = $this->container->get('club_account_economic.economic');
     $economic->setConfig($c);
 
-    foreach ($purchase->getOrder()->getOrderProducts() as $prod) {
+    foreach ($order->getOrderProducts() as $prod) {
       $economic->addFinanceVoucher($prod);
     }
   }

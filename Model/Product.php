@@ -4,12 +4,12 @@ namespace Club\Account\EconomicBundle\Model;
 
 class Product
 {
-  public $type;
-  public $account_number;
-  public $currency;
-  public $price;
-  public $quantity;
-  public $voucher_text;
+  protected $type;
+  protected $account_number;
+  protected $currency;
+  protected $price;
+  protected $quantity;
+  protected $voucher_text;
 
   public function getType()
   {
@@ -39,6 +39,31 @@ class Product
   public function getVoucherText()
   {
     return $this->voucher_text;
+  }
+
+  public function setAccountNumber($account_number)
+  {
+    $this->account_number = $account_number;
+  }
+
+  public function setCurrency($currency)
+  {
+    $this->currency = $currency;
+  }
+
+  public function setPrice($price)
+  {
+    $this->price = $price;
+  }
+
+  public function setQuantity($quantity)
+  {
+    $this->quantity = $quantity;
+  }
+
+  public function setVoucherText($voucher_text)
+  {
+    $this->voucher_text = $voucher_text;
   }
 }
 
