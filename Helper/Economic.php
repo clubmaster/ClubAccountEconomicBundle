@@ -4,9 +4,15 @@ namespace Club\Account\EconomicBundle\Helper;
 
 class Economic
 {
+  protected $container;
   protected $client;
   protected $config;
   protected $connected = false;
+
+  public function __construct($container)
+  {
+      $this->container = $container;
+  }
 
   public function setConfig(\Club\Account\EconomicBundle\Model\Config $config)
   {
