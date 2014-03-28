@@ -15,6 +15,10 @@ class EconomicLog
   {
     $order = $event->getOrder();
 
+    if ($order->getPrice() == 0) {
+        return false;
+    }
+
     $c = new \Club\Account\EconomicBundle\Model\Config();
     $c->url = $this->container->getParameter('club_account_economic.economic_url');
     $c->agreementNumber = $this->container->getParameter('club_account_economic.agreement');
