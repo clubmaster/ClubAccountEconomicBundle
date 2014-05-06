@@ -26,13 +26,10 @@ class Configuration implements ConfigurationInterface
         $rootNode
           ->children()
             ->scalarNode('enabled')->isRequired()->end()
-            ->scalarNode('agreement')->isRequired()->end()
-            ->scalarNode('username')->isRequired()->end()
-            ->scalarNode('password')->isRequired()->end()
-            ->scalarNode('economic_url')->isRequired()->end()
-            ->scalarNode('contraAccount')->isRequired()->end()
-            ->scalarNode('cashbook')->isRequired()->end()
-            ->scalarNode('currency')->isRequired()->end()
+            ->scalarNode('agreement')->defaultValue(null)->end()
+            ->scalarNode('username')->defaultValue(null)->end()
+            ->scalarNode('password')->defaultValue(null)->end()
+            ->scalarNode('economic_url')->defaultValue('https://api.e-conomic.com/secure/api1/EconomicWebservice.asmx?WSDL')->end()
           ->end();
 
         return $treeBuilder;

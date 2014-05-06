@@ -1,2 +1,6 @@
+2.0
+    * Removed a lot of stuff bound to ClubMaster
+    * Added Process entity
+
 1.1 (2014-03-28)
     * Do not add line in economic if amount is 0
