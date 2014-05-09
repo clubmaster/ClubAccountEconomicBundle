@@ -38,30 +38,37 @@ class Process
     /**
      * @var integer
      *
-     * @ORM\Column(name="contraAccount", type="integer")
+     * @ORM\Column(name="contraAccount", type="integer", nullable=true)
      */
     private $contraAccount;
 
     /**
      * @var integer
      *
-     * @ORM\Column(name="account", type="integer")
+     * @ORM\Column(name="account", type="integer", nullable=true)
      */
     private $account;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="vat_code", type="string", length=255)
+     * @ORM\Column(name="vat_code", type="string", length=255, nullable=true)
      */
     private $vatCode;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="cashbook", type="string", length=255)
+     * @ORM\Column(name="cashbook", type="string", length=255, nullable=true)
      */
     private $cashbook;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="term_of_payment", type="string", length=255, nullable=true)
+     */
+    private $termOfPayment;
 
     /**
      * @var string
@@ -289,10 +296,33 @@ class Process
     /**
      * Get vatCode
      *
-     * @return string 
+     * @return string
      */
     public function getVatCode()
     {
         return $this->vatCode;
+    }
+
+    /**
+     * Set termOfPayment
+     *
+     * @param string $termOfPayment
+     * @return Process
+     */
+    public function setTermOfPayment($termOfPayment)
+    {
+        $this->termOfPayment = $termOfPayment;
+
+        return $this;
+    }
+
+    /**
+     * Get termOfPayment
+     *
+     * @return string 
+     */
+    public function getTermOfPayment()
+    {
+        return $this->termOfPayment;
     }
 }

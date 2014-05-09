@@ -12,6 +12,7 @@ class Economic
     protected $client;
     protected $config;
     protected $connected = false;
+    protected $orderLine = 1;
 
     public function __construct($container)
     {
@@ -56,9 +57,13 @@ class Economic
             'Number' => $user->number,
             'Name' => $user->name,
             'Email' => $user->email,
-            'DebtorGroupHandle' => array('Number' => 1),
-            'CurrencyHandle' => array('Code' => 'DKK'),
-            'TermOfPaymentHandle' => array('Id' => 1),
+            'Address' => $user->address,
+            'City' => $user->city,
+            'Country' => $user->country,
+            'PostalCode' => $user->postalCode,
+            'DebtorGroupHandle' => $this->getDebtorGroupByNumber($user->group),
+            'CurrencyHandle' => $this->getCurrencyByCode($user->currency),
+            'TermOfPaymentHandle' => $this->getTermOfPaymentByName($user->term),
             'IsAccessible' => true
         );
 
@@ -67,24 +72,25 @@ class Economic
         return $this->debtor;
     }
 
-    public function addOrder($order_number, $debtor_number, $name)
+    public function addOrder($entry)
     {
         $data = array(
-            'Number' => $order_number,
-            'DebtorHandle' => array('Number' => $debtor_number),
-            'DebtorName' => $name,
-            'TermOfPaymentHandle' => array('Id' => 1),
-            'Date' => date('Y-m-d').'T00:00:00',
-            'DueDate' => date('Y-m-d').'T00:00:00',
-            'ExchangeRate' => 1,
+            'Number' => $entry->orderNumber,
+            'DebtorHandle' => $entry->debtor,
+            'DebtorName' => $entry->name,
+            'TermOfPaymentHandle' => $this->getTermOfPaymentByName($entry->term),
+            'Heading' => $entry->heading,
+            'Date' => $entry->date->format('Y-m-d').'T00:00:00',
+            'DueDate' => $entry->date->format('Y-m-d').'T00:00:00',
+            'ExchangeRate' => $this->getExchangeRate($entry->currency),
             'IsVatIncluded' => true,
-            'DeliveryDate' => date('Y-m-d').'T00:00:00',
+            'DeliveryDate' => $entry->date->format('Y-m-d').'T00:00:00',
             'IsArchived' => false,
-            'CurrencyHandle' => array('Code' => 'DKK'),
-            'IsSent' => false,
-            'NetAmount' => 0,
-            'VatAmount' => 0,
-            'GrossAmount' => 0,
+            'CurrencyHandle' => $this->getCurrencyByCode($entry->currency),
+            'IsSent' => true,
+            'GrossAmount' => $entry->grossAmount,
+            'NetAmount' => $entry->netAmount,
+            'VatAmount' => $entry->vatAmount,
             'Margin' => 0,
             'MarginAsPercent' => 0,
         );
@@ -92,22 +98,24 @@ class Economic
         $this->order = $this->client->Order_CreateFromData(array(
             'data' => $data
         ))->Order_CreateFromDataResult;
+
+        return $this->order;
     }
 
-    public function addOrderItem($item_number, $quantity, $name, $unit_price)
+    public function addOrderItem($entry)
     {
         $data = array(
-            'OrderHandle' => $this->order,
-            'Number' => $item_number,
-            'DeliveryDate' => date('Y-m-d').'T00:00:00',
-            'Quantity' => $quantity,
-            'ProductHandle' => array('Number' => 120),
-            'Description' => $name,
-            'UnitHandle' => array('Number' => 1),
-            'UnitNetPrice' => $unit_price,
+            'OrderHandle' => $entry->order,
+            'Number' => $this->orderLine,
+            'DeliveryDate' => $entry->date->format('Y-m-d').'T00:00:00',
+            'Quantity' => $entry->quantity,
+            'ProductHandle' => $this->getProductByNumber($entry->product),
+            'Description' => $entry->name,
+            'UnitHandle' => $this->getUnitByNumber(1),
+            'UnitNetPrice' => $entry->unitPrice,
             'DiscountAsPercent' => 0,
-            'UnitCostPrice' => 0,
-            'TotalNetAmount' => ($unit_price*$quantity),
+            'UnitCostPrice' => $entry->unitPrice,
+            'TotalNetAmount' => ($entry->unitPrice*$entry->quantity),
             'TotalMargin' => 0,
             'MarginAsPercent' => 0
         );
@@ -116,6 +124,10 @@ class Economic
             'data' => $data
         ))->OrderLine_CreateFromDataResult;
         $this->order_items[] = $item;
+
+        $this->orderLine++;
+
+        return $item;
     }
 
     public function getOrder()
@@ -167,6 +179,62 @@ class Economic
         return $r->Debtor_FindByNumberResult;
     }
 
+    protected function getProductByNumber($account)
+    {
+        $this->connect();
+        $r = $this->client->Product_FindByNumber(array(
+            'number' => $account
+        ));
+
+        if (!isset($r->Product_FindByNumberResult)) {
+            return false;
+        }
+
+        return $r->Product_FindByNumberResult;
+    }
+
+    protected function getTermOfPaymentByName($name)
+    {
+        $this->connect();
+        $r = $this->client->TermOfPayment_FindByName(array(
+            'name' => $name
+        ));
+
+        if (!isset($r->TermOfPayment_FindByNameResult)) {
+            return false;
+        }
+
+        return $r->TermOfPayment_FindByNameResult->TermOfPaymentHandle;
+    }
+
+    protected function getDebtorGroupByNumber($account)
+    {
+        $this->connect();
+        $r = $this->client->DebtorGroup_FindByNumber(array(
+            'number' => $account
+        ));
+
+        if (!isset($r->DebtorGroup_FindByNumberResult)) {
+            return false;
+        }
+
+        return $r->DebtorGroup_FindByNumberResult;
+    }
+
+    protected function getUnitByNumber($account)
+    {
+        $this->connect();
+        $r = $this->client->Unit_FindByNumber(array(
+            'number' => $account
+        ));
+
+        if (!isset($r->Unit_FindByNumberResult)) {
+            return false;
+        }
+
+        return $r->Unit_FindByNumberResult;
+    }
+
     protected function getAccountByNumber($account)
     {
         $this->connect();
@@ -211,6 +279,7 @@ class Economic
 
     protected function getCurrencyByCode($currency)
     {
+        $this->connect();
         return $this->client->Currency_FindByCode(array(
             'code' => $currency
         ))->Currency_FindByCodeResult;
@@ -337,6 +406,14 @@ class Economic
         return $vatCodes;
     }
 
+    public function getAllTermOfPayments()
+    {
+        $this->connect();
+        $terms = $this->client->TermOfPayment_GetAll()->TermOfPayment_GetAllResult;
+
+        return $terms;
+    }
+
     public function getCashBooks()
     {
         $this->connect();
@@ -383,5 +460,30 @@ class Economic
         }
 
         $this->connected = false;
+    }
+
+    protected function getExchangeRate($currency)
+    {
+        switch ($currency) {
+        case 'SEK':
+            $rate = '82.13879';
+            break;
+        case 'NOK':
+            $rate = '90.253372';
+            break;
+        case 'EUR':
+            $rate = '746.38874';
+            break;
+        case 'DKK':
+            $rate = '100';
+            break;
+        case 'CHF':
+            $rate = '612.976988';
+            break;
+        default:
+            throw new \Exception('Currency rate is not defined');
+        }
+
+        return $rate;
     }
 }
