@@ -78,6 +78,13 @@ class Process
     private $currency;
 
     /**
+     * @var string
+     *
+     * @ORM\Column(name="message", type="text", nullable=true)
+     */
+    private $message;
+
+    /**
      * @var \DateTime
      *
      * @ORM\Column(name="created_at", type="datetime")
@@ -319,10 +326,33 @@ class Process
     /**
      * Get termOfPayment
      *
-     * @return string 
+     * @return string
      */
     public function getTermOfPayment()
     {
         return $this->termOfPayment;
+    }
+
+    /**
+     * Set message
+     *
+     * @param string $message
+     * @return Process
+     */
+    public function setMessage($message)
+    {
+        $this->message = $message;
+
+        return $this;
+    }
+
+    /**
+     * Get message
+     *
+     * @return string 
+     */
+    public function getMessage()
+    {
+        return $this->message;
     }
 }
