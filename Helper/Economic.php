@@ -217,17 +217,6 @@ class Economic
         return $this->client->Order_GetNumber(array('orderHandle' => $this->order))->Order_GetNumberResult;
     }
 
-    public function bookInvoice($invoiceHandle)
-    {
-        $param = array(
-            'currentInvoiceHandle' => array(
-                'Id' => $invoiceHandle
-            )
-        );
-
-        return $this->client->CurrentInvoice_Book($param);
-    }
-
     public function upgradeOrderToInvoice($orderHandle)
     {
         $param = array(
@@ -458,11 +447,11 @@ class Economic
         ))->CashBookEntry_GetDataResult;
     }
 
-    public function bookInvoice($entry)
+    public function bookInvoice($id)
     {
         $param = array(
             'currentInvoiceHandle' => array(
-                'Id' => $entry
+                'Id' => $id
             )
         );
 
