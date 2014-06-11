@@ -1,6 +1,13 @@
 2.0
     * Removed a lot of stuff bound to ClubMaster
     * Added Process entity
+    * Added CurrentInvoice support
+    * Added CurrentInvoiceLine support
+    * Added Order support
+    * Added OrderLine support
+    * Added support for upgrade order to invoice
+    * Added support for book current invoice
+    * Added support for getting current invoice pdf
 
 1.1 (2014-03-28)
     * Do not add line in economic if amount is 0

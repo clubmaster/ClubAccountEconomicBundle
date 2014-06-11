@@ -13,6 +13,9 @@ class Economic
     protected $config;
     protected $connected = false;
     protected $orderLine = 1;
+    protected $invoiceLine = 1;
+    protected $order_items = array();
+    protected $invoice_items = array();
 
     public function __construct($container)
     {
@@ -72,10 +75,49 @@ class Economic
         return $this->debtor;
     }
 
+    public function addInvoice($entry)
+    {
+        $this->connect();
+
+        $data = array(
+            'CurrencyHandle' => $this->getCurrencyByCode($entry->currency),
+            'Date' => $entry->date->format('Y-m-d').'T00:00:00',
+            'DebtorHandle' => $entry->debtor,
+            'DebtorName' => $entry->name,
+            'DebtorAddress' => $entry->address,
+            'DebtorCity' => $entry->city,
+            'DebtorPostalCode' => $entry->postalCode,
+            'DebtorCountry' => $entry->country,
+            'DeliveryDate' => $entry->date->format('Y-m-d').'T00:00:00',
+            'DueDate' => $entry->date->format('Y-m-d').'T00:00:00',
+            'ExchangeRate' => $this->getExchangeRate($entry->currency),
+            'GrossAmount' => $entry->grossAmount,
+            'Heading' => $entry->heading,
+            'IsVatIncluded' => true,
+            'Margin' => 0,
+            'MarginAsPercent' => 0,
+            'NetAmount' => $entry->netAmount,
+            'OtherReference' => $entry->otherReference,
+            'PublicEntryNumber' => $entry->publicEntryNumber,
+            'TermOfPaymentHandle' => $this->getTermOfPaymentByName($entry->term),
+            'VatAmount' => $entry->vatAmount,
+        );
+
+        $this->invoice = $this->client->CurrentInvoice_CreateFromData(array(
+            'data' => $data
+        ))->CurrentInvoice_CreateFromDataResult;
+
+        return $this->invoice;
+    }
+
     public function addOrder($entry)
     {
+        $this->connect();
+
         $data = array(
             'Number' => $entry->orderNumber,
+            'PublicEntryNumber' => $entry->publicEntryNumber,
+            'OtherReference' => $entry->otherReference,
             'DebtorHandle' => $entry->debtor,
             'DebtorName' => $entry->name,
             'TermOfPaymentHandle' => $this->getTermOfPaymentByName($entry->term),
@@ -100,6 +142,34 @@ class Economic
         ))->Order_CreateFromDataResult;
 
         return $this->order;
+    }
+
+    public function addInvoiceItem($entry)
+    {
+        $data = array(
+            'DeliveryDate' => $entry->date->format('Y-m-d').'T00:00:00',
+            'Description' => $entry->name,
+            'DiscountAsPercent' => 0,
+            'MarginAsPercent' => 0,
+            'Number' => $this->invoiceLine,
+            'InvoiceHandle' => $entry->invoice,
+            'ProductHandle' => $this->getProductByNumber($entry->product),
+            'Quantity' => $entry->quantity,
+            'TotalMargin' => 0,
+            'TotalNetAmount' => ($entry->unitPrice*$entry->quantity),
+            'UnitHandle' => $this->getUnitByNumber(1),
+            'UnitNetPrice' => $entry->unitPrice,
+            'UnitCostPrice' => $entry->unitPrice,
+        );
+
+        $item = $this->client->CurrentInvoiceLine_CreateFromData(array(
+            'data' => $data
+        ))->CurrentInvoiceLine_CreateFromDataResult;
+        $this->invoice_items[] = $item;
+
+        $this->invoiceLine++;
+
+        return $item;
     }
 
     public function addOrderItem($entry)
@@ -147,12 +217,26 @@ class Economic
         return $this->client->Order_GetNumber(array('orderHandle' => $this->order))->Order_GetNumberResult;
     }
 
-    public function upgradeOrder()
+    public function bookInvoice($invoiceHandle)
     {
-        $item = $this->client->OrderLine_CreateFromData(array(
-            'data' => $data
-        ))->OrderLine_CreateFromDataResult;
+        $param = array(
+            'currentInvoiceHandle' => array(
+                'Id' => $invoiceHandle
+            )
+        );
 
+        return $this->client->CurrentInvoice_Book($param);
+    }
+
+    public function upgradeOrderToInvoice($orderHandle)
+    {
+        $param = array(
+            'orderHandle' => array(
+                'Id' => $orderHandle
+            )
+        );
+
+        return $this->client->Order_UpgradeToInvoice($param);
     }
 
     public function __destruct()
@@ -372,6 +456,30 @@ class Economic
         return $this->client->CashBookEntry_GetData(array(
             'entityHandle' => $entry
         ))->CashBookEntry_GetDataResult;
+    }
+
+    public function bookInvoice($entry)
+    {
+        $param = array(
+            'currentInvoiceHandle' => array(
+                'Id' => $entry
+            )
+        );
+
+        return $this->client->CurrentInvoice_Book($param)
+            ->CurrentInvoice_BookResult;
+    }
+
+    public function getInvoicePdf($entry)
+    {
+        $param = array(
+            'currentInvoiceHandle' => array(
+                'Id' => $entry
+            )
+        );
+
+        return $this->client->CurrentInvoice_GetPdf($param)
+            ->CurrentInvoice_GetPdfResult;
     }
 
     public function addEconomic($order, $currency, $account, $contraAccount, $cashbook)
