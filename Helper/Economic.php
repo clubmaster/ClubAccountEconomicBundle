@@ -21,6 +21,7 @@ class Economic
     {
         $this->container = $container;
         $this->em = $container->get('doctrine.orm.default_entity_manager');
+        $this->translator = $container->get('translator');
     }
 
     protected function findDebtor(\Club\UserBundle\Entity\User $user)
@@ -402,6 +403,38 @@ class Economic
         return $r->CashBookEntry_UpdateFromDataResult;
     }
 
+    public function addManualDebtorInvoice(Process $entity, \DateTime $date, $amount, $text, $voucher, $invoice)
+    {
+        $currency = $this->getCurrencyByCode($entity->getCurrency());
+        $contra = $this->getAccountByNumber($entity->getContraAccount());
+        $cashbook = $this->getCashBookByName($entity->getCashbook());
+        $vat = $this->getVatAccountByVatCode($entity->getVatCode());
+
+        $r = $this->client->CashBookEntry_CreateManualDebtorInvoice(array(
+            'cashBookHandle' => $cashbook,
+            'contraAccountHandle' => $contra
+        ))->CashBookEntry_CreateManualDebtorInvoiceResult;
+
+        $entry = $this->getCashBookEntry($r);
+
+        $param = array();
+        $param['Handle'] = $r;
+        $param['Type'] = 'ManualDebtorInvoice';
+        $param['CashBookHandle'] = $cashbook;
+        $param['ContraAccountHandle'] = $contra;
+        $param['Date'] = $date->format('c');
+        $param['VoucherNumber'] = $voucher;
+        $param['DebtorInvoiceNumber'] = $invoice;
+        $param['AmountDefaultCurrency'] = $amount;
+        $param['Amount'] = $amount;
+        $param['CurrencyHandle'] = $currency;
+        $param['Text'] = $text;
+
+        return $this->client->CashBookEntry_UpdateFromData(array(
+            'data' => $param
+        ))->CashBookEntry_UpdateFromDataResult;
+    }
+
     public function addDebtorPayment(\Club\ShopBundle\Entity\PurchaseLog $purchase_log)
     {
         $user = $this->findDebtor($purchase_log->getOrder()->getUser());
@@ -471,7 +504,57 @@ class Economic
             ->CurrentInvoice_GetPdfResult;
     }
 
-    public function addEconomic($order, $currency, $account, $contraAccount, $cashbook)
+    public function addProcess($entity)
+    {
+        $process = new Process();
+
+        $entity->setProcess($process);
+
+        return $this;
+    }
+
+    public function setReady($entity)
+    {
+        $entity
+            ->getProcess()
+            ->setStatus(Process::ORDER_READY)
+            ;
+
+        return $this;
+    }
+
+    public function setProcessing($entity)
+    {
+        $entity
+            ->getProcess()
+            ->setStatus(Process::ORDER_PROCESSING)
+            ;
+
+        return $this;
+    }
+
+    public function setProcessed($entity)
+    {
+        $entity
+            ->getProcess()
+            ->setStatus(Process::ORDER_PROCESSING)
+            ;
+
+        return $this;
+    }
+
+    public function setError($entity, $message)
+    {
+        $entity
+            ->getProcess()
+            ->setStatus(Process::ORDER_ERROR)
+            ->setMessage($message)
+            ;
+
+        return $this;
+    }
+
+    public function addEconomic($order, $currency, $account, $contraAccount, $cashbook, $vat)
     {
         if ($this->container->getParameter('club_account_economic.enabled') == false) {
             return;
@@ -482,9 +565,11 @@ class Economic
         $process->setContraAccount($contraAccount);
         $process->setCashbook($cashbook);
         $process->setCurrency($currency);
+        $process->setVatCode($vat);
 
         $order->setProcess($process);
-        $this->em->persist($process);
+
+        return $this;
     }
 
     protected function getAllCurrencies()

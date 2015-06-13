@@ -349,7 +349,7 @@ class Process
     /**
      * Get message
      *
-     * @return string 
+     * @return string
      */
     public function getMessage()
     {
