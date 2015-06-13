@@ -1,6 +1,10 @@
-2.1 (2015-06-14)
+2.2 (2015-06-14)
     * Added addManualDebtorInvoice
     * Made addEconomic function better
+
+2.1 (2014-06-11)
+    * Added lots of functionality to helper
+    * Fixed bug with book invoice
 
 2.0 (2014-05-09)
     * Removed a lot of stuff bound to ClubMaster
