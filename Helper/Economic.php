@@ -16,12 +16,34 @@ class Economic
     protected $invoiceLine = 1;
     protected $order_items = array();
     protected $invoice_items = array();
+    protected $agreementNumber;
+    protected $userName;
+    protected $password;
 
     public function __construct($container)
     {
         $this->container = $container;
         $this->em = $container->get('doctrine.orm.default_entity_manager');
         $this->translator = $container->get('translator');
+
+        $this->agreementNumber = $this->container->getParameter('club_account_economic.agreement');
+        $this->userName = $this->container->getParameter('club_account_economic.username');
+        $this->password = $this->container->getParameter('club_account_economic.password');
+    }
+
+    public function setUsername($username)
+    {
+        $this->userName = $username;
+    }
+
+    public function setPassword($password)
+    {
+        $this->password = $password;
+    }
+
+    public function setAgreementNumber($agreementNumber)
+    {
+        $this->agreementNumber = $agreementNumber;
     }
 
     protected function findDebtor(\Club\UserBundle\Entity\User $user)
@@ -627,15 +649,15 @@ class Economic
         );
 
         $this->client->Connect(array(
-            'agreementNumber' => $this->container->getParameter('club_account_economic.agreement'),
-            'userName' => $this->container->getParameter('club_account_economic.username'),
-            'password' => $this->container->getParameter('club_account_economic.password')
+            'agreementNumber' => $this->agreementNumber,
+            'userName' => $this->userName,
+            'password' => $this->password
         ));
 
         $this->connected = true;
     }
 
-    protected function disconnect()
+    public function disconnect()
     {
         if ($this->connected) {
             $this->client->Disconnect();
@@ -667,6 +689,9 @@ class Economic
             break;
         case 'PLN':
             $rate = '176.13';
+            break;
+        case 'USD':
+            $rate = '657.32';
             break;
 
         default:
