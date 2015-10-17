@@ -648,20 +648,27 @@ class Economic
     {
         switch ($currency) {
         case 'SEK':
-            $rate = '82.13879';
+            $rate = '79.75';
             break;
         case 'NOK':
-            $rate = '90.253372';
+            $rate = '80.99';
             break;
         case 'EUR':
-            $rate = '746.38874';
+            $rate = '746.15';
             break;
         case 'DKK':
             $rate = '100';
             break;
         case 'CHF':
-            $rate = '612.976988';
+            $rate = '688.93';
             break;
+        case 'GBP':
+            $rate = '1013.51';
+            break;
+        case 'PLN':
+            $rate = '176.13';
+            break;
+
         default:
             throw new \Exception('Currency rate is not defined');
         }

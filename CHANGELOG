@@ -1,3 +1,8 @@
+2.3 (2015-10-16)
+    * Added GBP currency
+    * Added PLN currency
+    * Updated currency exchange rates
+
 2.2 (2015-06-14)
     * Added addManualDebtorInvoice
     * Made addEconomic function better
